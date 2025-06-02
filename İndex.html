@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KILIÇ GAME</title>
+    <style>
+        /* --- Genel Stil --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px 10px;
+            box-sizing: border-box;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><text x="0" y="90" font-family="Arial" font-size="100" fill="gray">⚔️</text></svg>');
+            background-repeat: repeat;
+            background-size: 100px 100px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* --- Input ve Buton Stilleri --- */
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .input-group label {
+            font-size: 1em;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .input-group input[type="number"] {
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            width: 70px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input[type="number"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        /* Oyuncu isimleri input alanı için stil */
+        #playerNamesInputContainer {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #playerNamesInputContainer .name-input-group {
+            display: flex;
+            align-items: center;
+            width: 90%;
+            max-width: 300px;
+            gap: 10px;
+        }
+
+        #playerNamesInputContainer .name-input-group input[type="text"] {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Oyuncu Bilgi Kutucukları Stilleri --- */
+        #playerCardsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .player-info-box {
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 140px;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            position: relative;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        /* Tablet boyutları için */
+        @media (min-width: 600px) {
+            .player-info-box {
+                width: 160px;
+                height: 180px;
+                padding: 20px;
+            }
+        }
+        /* Daha küçük mobil cihazlar için */
+        @media (max-width: 400px) {
+            .player-info-box {
+                width: 120px;
+                height: 140px;
+                font-size: 0.9em;
+            }
+            .player-info-box h3 {
+                font-size: 1.1em;
+            }
+            .player-info-content p {
+                font-size: 0.9em;
+            }
+        }
+
+        .player-info-box:hover:not(.revealed):not(.disabled) {
+            background-color: #e0e6e9;
+            transform: translateY(-5px);
+        }
+
+        .player-info-box.revealed {
+            background-color: #d7e8f5;
+            cursor: default;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .player-info-box.disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .player-info-box h3 {
+            color: #34495e;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+            word-break: break-word;
+            max-width: 100%;
+        }
+
+        .player-info-content {
+            display: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .player-info-content p {
+            margin: 3px 0;
+            font-size: 1em;
+            line-height: 1.4;
+            color: #444;
+        }
+        .player-info-content strong {
+            color: #34495e;
+            font-size: 1em;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Yeni kapatma butonu (X) */
+        .player-info-box .close-x-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 1.1em;
+            line-height: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            z-index: 10;
+            padding: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+        .player-info-box .close-x-button:hover {
+            background-color: #c0392b;
+            transform: scale(1.1);
+        }
+        .player-info-box .close-x-button:active {
+            transform: scale(0.95);
+        }
+        
+        .game-status-message {
+            margin-top: 15px;
+            font-size: 1em;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        /* Oyun Sonu Butonları */
+        .end-game-options {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .end-game-options button {
+            width: 90%;
+            max-width: 300px;
+        }
+
+        .end-game-options .show-words-button {
+            background-color: #1abc9c;
+        }
+        .end-game-options .show-words-button:hover {
+            background-color: #16a085;
+        }
+
+        .end-game-options .restart-same-players-button {
+            background-color: #3498db; /* Yeni renk */
+        }
+        .end-game-options .restart-same-players-button:hover {
+            background-color: #2980b9;
+        }
+
+        .end-game-options .new-game-button {
+            background-color: #9b59b6;
+        }
+        .end-game-options .new-game-button:hover {
+            background-color: #8e44ad;
+        }
+
+        /* Oyun Özeti Kutusu */
+        .game-summary-box {
+            background-color: #eaf2f8;
+            border: 1px solid #d0e4f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .game-summary-box h4 {
+            color: #2980b9;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .game-summary-box p {
+            margin-bottom: 5px;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .game-summary-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .game-summary-box ul li {
+            background-color: #dbeaf2;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .game-summary-box ul li strong {
+            color: #34495e;
+            font-size: 0.95em;
+        }
+
+        .game-summary-box .hide-summary-button {
+            background-color: #e74c3c;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .game-summary-box .hide-summary-button:hover {
+            background-color: #c0392b;
+        }
+
+        /* DEBUG BİLGİLERİ KISMI ARTIK SÜREKLİ GİZLİ */
+        .debug-info {
+            display: none !important;
+        }
+
+        /* --- Yeni Açılış Ekranı Stili --- */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 1s ease-out;
+        }
+
+        #splashScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-out, visibility 0s 1s; /* Gözükmez olduktan sonra visibility'yi değiştir */
+        }
+
+        #splashScreen .splash-content {
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s forwards, fadeOutSplash 1s forwards;
+            animation-delay: 0.5s, 3s;
+        }
+
+        #splashScreen .kilic-game-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+        }
+
+        #splashScreen h2 {
+            margin: 0;
+            font-size: 4em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            color: #ecf0f1;
+            letter-spacing: 5px;
+            line-height: 1;
+        }
+
+        #splashScreen p {
+            font-size: 1.1em;
+            color: #bdc3c7;
+            margin-top: 15px;
+            letter-spacing: 1px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOutSplash {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        /* Genel responsive ayarlar */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            button {
+                font-size: 1em;
+                padding: 10px 20px;
+            }
+            .player-info-box {
+                width: calc(50% - 20px);
+                max-width: 180px;
+                height: 150px;
+            }
+            .player-info-box h3 {
+                font-size: 1.2em;
+            }
+            .player-info-content p {
+                font-size: 0.9em;
+            }
+            .game-status-message {
+                font-size: 0.95em;
+            }
+            #splashScreen .kilic-game-logo {
+                width: 100px;
+                height: 100px;
+                margin-bottom: 15px;
+            }
+            #splashScreen h2 {
+                font-size: 3em;
+            }
+            #splashScreen p {
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .input-group label {
+                font-size: 0.9em;
+            }
+            .input-group input[type="number"],
+            #playerNamesInputContainer .name-input-group input[type="text"] {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+            button {
+                font-size: 0.95em;
+                padding: 10px 15px;
+            }
+            .player-info-box {
+                width: calc(100% - 20px);
+                height: auto;
+                padding: 12px;
+            }
+            .player-info-box h3 {
+                font-size: 1.1em;
+                margin-bottom: 5px;
+            }
+            .player-info-content p {
+                font-size: 0.9em;
+            }
+            .game-status-message {
+                font-size: 0.9em;
+            }
+            #splashScreen .kilic-game-logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 10px;
+            }
+            #splashScreen h2 {
+                font-size: 2.5em;
+                letter-spacing: 3px;
+            }
+            #splashScreen p {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="splashScreen">
+        <div class="splash-content">
+            <svg class="kilic-game-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="kilicGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect x="45" y="65" width="10" height="25" rx="3" ry="3" fill="#A9A9A9"/>
+                <rect x="30" y="60" width="40" height="10" rx="3" ry="3" fill="#808080"/>
+                <path d="M50 5 L40 60 H60 L50 5 Z" fill="url(#kilicGradient)"/>
+                <path d="M50 5 L45 30 Q50 25 55 30 L50 5 Z" fill="#FFFFFF" opacity="0.6"/>
+            </svg>
+            <h2>KILIÇ GAME</h2>
+            <p>Kerem Can Kılıç tarafından tasarlanmıştır</p>
+        </div>
+    </div>
+
+    <div class="container" id="mainGameContainer" style="display: none;">
+        <h1>KILIÇ GAME</h1>
+
+        <div class="input-group" id="setupScreen">
+            <label for="numPlayers">Oyuncu Sayısı (3-10):</label>
+            <input type="number" id="numPlayers" min="3" max="10" value="4">
+            <button onclick="showNameInputs()">Oyuncu İsimlerini Gir</button>
+        </div>
+
+        <div id="nameInputScreen" style="display: none;">
+            <p class="game-status-message">Her oyuncu için bir isim girin:</p>
+            <div id="playerNamesInputContainer">
+                </div>
+            <button onclick="startGame()">Oyunu Başlat</button>
+        </div>
+
+        <div id="gameScreen" style="display: none;">
+            <p class="game-status-message" id="gameStatus">Kelimeleri görmek için aşağıdaki kutucuklara tıklayın.</p>
+            <div id="playerCardsContainer">
+                </div>
+
+            <div class="end-game-options" style="display: none;">
+                <button class="show-words-button" onclick="showGameSummary()">Kelimeleri Gör</button>
+                <button class="restart-same-players-button" onclick="restartWithSamePlayers()">Aynı Kişilerle Yeniden Başlat</button>
+                <button class="new-game-button" onclick="startNewGame()">Yeni Oyun Oluştur</button>
+            </div>
+
+            <div class="game-summary-box" id="gameSummaryBox">
+                <h4>Oyun Özeti</h4>
+                <p><strong>Ana Mekan:</strong> <span id="summaryMainLocation"></span></p>
+                <p><strong>Köstebek Mekanı:</strong> <span id="summaryMoleLocation"></span></p>
+                <p><strong>Köstebek Oyuncu:</strong> <span id="summaryMolePlayer"></span></p>
+                <hr>
+                <h4>Oyuncu Bilgileri:</h4>
+                <ul id="summaryPlayerList"></ul>
+                <button class="hide-summary-button" onclick="hideGameSummary()">Gizle</button>
+            </div>
+        </div>
+
+        <div class="debug-info" id="debugInfo">
+            <h3>Debug Bilgileri (Geliştirme için)</h3>
+            <p><strong>Ana Mekan:</strong> <span id="debugMainLocation"></span></p>
+            <p><strong>Köstebek Mekanı:</strong> <span id="debugMoleLocation"></span></p>
+            <p><strong>Köstebek Numarası:</strong> <span id="debugMoleIndex"></span></p>
+            <p><strong>Oyuncular:</strong> <pre id="debugPlayersArray"></pre></p>
+        </div>
+    </div>
+
+    <script>
+        // --- Kelime Havuzu ---
+        const kelimeHavuzu = [
+            {
+                mekan: "Kütüphane",
+                roller: ["Kütüphaneci", "Öğrenci", "Yazar", "Araştırmacı", "Güvenlik Görevlisi", "Okuyucu", "Temizlikçi"]
+            },
+            {
+                mekan: "Restoran",
+                roller: ["Şef", "Garson", "Barmen", "Müşteri", "Kasiyer", "Temizlikçi", "Müdür"]
+            },
+            {
+                mekan: "Hastane",
+                roller: ["Doktor", "Hemşire", "Hasta", "Ziyaretçi", "Güvenlik Görevlisi", "Temizlikçi", "Ameliyatçı"]
+            },
+            {
+                mekan: "Polis Karakolu",
+                roller: ["Polis Memuru", "Dedektif", "Amir", "Şüpheli", "Avukat", "Sekreter", "Tanık"]
+            },
+            {
+                mekan: "Tiyatro",
+                roller: ["Aktör", "Yönetmen", "Seyirci", "Sahne Görevlisi", "Kostümcü", "Biletçi", "Dekoratör"]
+            },
+            {
+                mekan: "Okul",
+                roller: ["Öğretmen", "Öğrenci", "Müdür", "Hademe", "Kantin Görevlisi", "Veli", "Rehber Öğretmen"]
+            },
+            {
+                mekan: "Havaalanı",
+                roller: ["Pilot", "Hostes", "Yolcu", "Bagaj Görevlisi", "Güvenlik Görevlisi", "Kontrolör", "Temizlikçi"]
+            },
+            {
+                mekan: "Banka",
+                roller: ["Veznedar", "Müşteri", "Müdür", "Güvenlik Görevlisi", "Temizlikçi", "Finans Danışmanı", "Hırsız"]
+            },
+            {
+                mekan: "Müze",
+                roller: ["Küratör", "Ziyaretçi", "Rehber", "Güvenlik Görevlisi", "Temizlikçi", "Sanatçı", "Tarihçi"]
+            },
+            {
+                mekan: "Park",
+                roller: ["Koşucu", "Piknikçi", "Çocuk", "Anne", "Baba", "Köpek Gezdiren", "Bahçıvan"]
+            },
+            {
+                mekan: "Uzay Gemisi",
+                roller: ["Astronot", "Kaptan", "Mühendis", "Bilim İnsanı", "Yolcu", "Robot", "Uzaylı"]
+            },
+            {
+                mekan: "Sirk",
+                roller: ["Palyaço", "Akrobat", "Aslan Terbiyecisi", "Seyirci", "Biletçi", "Çadır Kurucu", "Yönetici"]
+            },
+            {
+                mekan: "Şantiye",
+                roller: ["İnşaat İşçisi", "Mühendis", "Mimar", "Denetmen", "Kamyon Şoförü", "Usta", "Kalfan"]
+            },
+            {
+                mekan: "Market",
+                roller: ["Kasiyer", "Müşteri", "Market Görevlisi", "Güvenlikçi", "Depo Görevlisi", "Reyon Görevlisi", "Müdür"]
+            },
+            {
+                mekan: "Otel",
+                roller: ["Resepsiyonist", "Müşteri", "Bellboy", "Kat Görevlisi", "Müdür", "Aşçı", "Temizlikçi"]
+            },
+            {
+                mekan: "Plaj",
+                roller: ["Yüzücü", "Güneşlenen", "Cankurtaran", "Satıcı", "Çocuk", "Sporcu", "Kumdan Kale Yapan"]
+            },
+            {
+                mekan: "Kamp Alanı",
+                roller: ["Kampçı", "Doğa Yürüyüşçüsü", "Rehber", "Ateş Yakan", "Çadır Kuran", "Maceracı", "Gözlemci"]
+            },
+            {
+                mekan: "Film Seti",
+                roller: ["Oyuncu", "Yönetmen", "Kameraman", "Senarist", "Makyaöz", "Işıkçı", "Figüran"]
+            },
+            {
+                mekan: "Mahkeme Salonu",
+                roller: ["Hakim", "Avukat", "Sanık", "Tanık", "Jüri Üyesi", "Zabıt Katibi", "Güvenlik Görevlisi"]
+            },
+            {
+                mekan: "Laboratuvar",
+                roller: ["Bilim İnsanı", "Asistan", "Deney Yapan", "Araştırmacı", "Temizlikçi", "Güvenlik Görevlisi", "Öğrenci"]
+            }
+        ];
+
+        let players = [];
+        let mainLocation = null;
+        let moleLocation = null;
+        let moleIndex = -1; // Köstebek oyuncunun indeksini tutacak
+        let numPlayers = 0; // Global hale getirildi
+        let currentPlayerNames = []; // Oyuncu isimlerini tutmak için yeni dizi
+
+        // --- Yardımcı Fonksiyonlar ---
+        function getRandomItem(arr) {
+            if (arr.length === 0) {
+                console.error("Hata: Boş diziden rastgele öğe seçilemez.");
+                return null;
+            }
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // --- Oyuncu İsimlerini Gir Ekranını Göster ---
+        function showNameInputs() {
+            numPlayers = parseInt(document.getElementById('numPlayers').value);
+
+            if (isNaN(numPlayers) || numPlayers < 3 || numPlayers > 10) {
+                alert("Oyuncu sayısı 3 ile 10 arasında bir sayı olmalı.");
+                return;
+            }
+
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('nameInputScreen').style.display = 'block';
+
+            const nameInputContainer = document.getElementById('playerNamesInputContainer');
+            nameInputContainer.innerHTML = ''; // Önceki inputları temizle
+
+            // Eğer kaydedilmiş isimler varsa, onları kullan
+            const namesToUse = currentPlayerNames.length === numPlayers ? currentPlayerNames : Array(numPlayers).fill(null).map((_, i) => `Oyuncu ${i + 1}`);
+
+            for (let i = 0; i < numPlayers; i++) {
+                const inputGroup = document.createElement('div');
+                inputGroup.classList.add('name-input-group');
+                inputGroup.innerHTML = `
+                    <label for="playerName${i}">Oyuncu ${i + 1}:</label>
+                    <input type="text" id="playerName${i}" placeholder="İsim girin" value="${namesToUse[i]}">
+                `;
+                nameInputContainer.appendChild(inputGroup);
+            }
+        }
+
+        // --- Oyun Başlatma Fonksiyonu ---
+        function startGame() {
+            players = [];
+            currentPlayerNames = []; // Yeni oyunda isimleri kaydetmek için sıfırla
+
+            for (let i = 0; i < numPlayers; i++) {
+                const playerNameInput = document.getElementById(`playerName${i}`);
+                let playerName = playerNameInput.value.trim();
+                if (playerName === "") {
+                    playerName = `Oyuncu ${i + 1}`; // İsim boşsa varsayılan atama
+                }
+                players.push({ id: i, name: playerName, role: '', location: '', instructions: '', isMole: false, revealed: false });
+                currentPlayerNames.push(playerName); // Oyuncu ismini kaydet
+            }
+
+            if (kelimeHavuzu.length < 2) {
+                alert("Hata: Yeterli farklı mekan paketi yok. Lütfen kelime havuzunu genişletin (en az 2 mekan paketi gerekli).");
+                return;
+            }
+            const shuffledLocations = [...kelimeHavuzu];
+            shuffleArray(shuffledLocations);
+
+            mainLocation = shuffledLocations.pop();
+            moleLocation = shuffledLocations.pop();
+
+            moleIndex = Math.floor(Math.random() * numPlayers); // Köstebek artık rastgele seçiliyor
+
+            const usedRolesMain = [];
+            const usedRolesMole = [];
+
+            for (let i = 0; i < numPlayers; i++) {
+                let playerRole;
+                let playerLocationName;
+                let instructions;
+
+                if (i === moleIndex) {
+                    // Bu oyuncu Köstebek
+                    players[i].isMole = true;
+                    playerLocationName = moleLocation.mekan;
+                    
+                    let availableSpecificRoles = moleLocation.roller.filter(role => !usedRolesMole.includes(role));
+                    if (availableSpecificRoles.length === 0) {
+                        playerRole = getRandomItem(moleLocation.roller);
+                        if (!playerRole) {
+                             alert("Hata: Köstebek için yeterli rol yok. Lütfen kelime havuzunu kontrol edin.");
+                             return;
+                        }
+                    } else {
+                        playerRole = getRandomItem(availableSpecificRoles);
+                        usedRolesMole.push(playerRole);
+                    }
+                    instructions = "Köstebek görevin: Herkesin hangi mekanda olduğunu anlamaya çalış. Sorular sor ve cevaplar verirken diğerlerinin kelimelerine dikkat et. Kendi mekan kelimenin diğerlerinden farklı olduğunu anlamaya çalış.";
+                } else {
+                    // Normal oyuncu
+                    playerLocationName = mainLocation.mekan;
+                    let availableSpecificRoles = mainLocation.roller.filter(role => !usedRolesMain.includes(role));
+                    if (availableSpecificRoles.length === 0) {
+                        playerRole = getRandomItem(mainLocation.roller);
+                        if (!playerRole) {
+                            alert("Hata: Normal oyuncular için yeterli rol yok. Lütfen kelime havuzunu kontrol edin.");
+                            return;
+                        }
+                    } else {
+                        playerRole = getRandomItem(availableSpecificRoles);
+                        usedRolesMain.push(playerRole);
+                    }
+                    instructions = "Dedektif görevin: Aranızdaki köstebeği sorular sorarak ve cevapları analiz ederek bul. Mekandan bahsetmeden sorular sor ve cevaplar ver.";
+                }
+                players[i].role = playerRole;
+                players[i].location = playerLocationName;
+                players[i].instructions = instructions;
+            }
+
+            // Arayüzü güncelle
+            document.getElementById('nameInputScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.querySelector('.end-game-options').style.display = 'none';
+            document.getElementById('gameSummaryBox').style.display = 'none';
+            document.getElementById('gameStatus').textContent = `Kelimeleri görmek için aşağıdaki kutucuklara tıklayın. Her kutucuğu sadece bir kez açabilirsiniz.`;
+            
+            createPlayerInfoBoxes(numPlayers); // Oyuncu kutucuklarını oluştur
+
+            console.log("--- Oyun Başlatıldı (Konsol İçin Debug Bilgileri) ---");
+            console.log("Ana Mekan:", mainLocation.mekan);
+            console.log("Köstebek Mekanı:", moleLocation.mekan);
+            console.log("Köstebek Oyuncu Numarası:", moleIndex + 1);
+            console.log("Oyuncu Bilgileri:", players);
+        }
+
+        // --- Yeni Fonksiyon: Oyuncu Bilgi Kutucuklarını Oluşturma ---
+        function createPlayerInfoBoxes(numPlayers) {
+            const container = document.getElementById('playerCardsContainer');
+            container.innerHTML = ''; // Önceki kutucukları temizle
+
+            for (let i = 0; i < numPlayers; i++) {
+                const playerBox = document.createElement('div');
+                playerBox.classList.add('player-info-box');
+                playerBox.setAttribute('data-player-id', i); // Oyuncuyu tanımlamak için ID
+
+                const playerTitle = document.createElement('h3');
+                playerTitle.textContent = players[i].name; // Oyuncu adı burada
+                playerBox.appendChild(playerTitle);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('player-info-content');
+                contentDiv.innerHTML = `
+                    <p><strong>ROLÜN:</strong> <span class="player-role-span"></span></p>
+                    <p><strong>MEKAN:</strong> <span class="player-location-span"></span></p>
+                `;
+                playerBox.appendChild(contentDiv);
+
+                // Yeni X kapatma butonu
+                const closeXButton = document.createElement('button');
+                closeXButton.classList.add('close-x-button');
+                closeXButton.textContent = 'X';
+                closeXButton.style.display = 'none'; // Başlangıçta gizli
+                playerBox.appendChild(closeXButton);
+
+                playerBox.onclick = function() { showPlayerInfoBox(playerBox, i); };
+                closeXButton.onclick = function(event) {
+                    event.stopPropagation(); // Kutunun tekrar açılmasını engelle
+                    hidePlayerInfoBox(boxElement, i);
+                };
+
+                container.appendChild(playerBox);
+            }
+        }
+
+        // --- Yeni Fonksiyon: Kutucuk Bilgisini Gösterme ---
+        function showPlayerInfoBox(boxElement, playerId) {
+            const player = players[playerId];
+            
+            if (player.revealed) return; // Zaten açılmış ve kapatılmışsa tekrar açma
+
+            const titleElement = boxElement.querySelector('h3');
+            const contentElement = boxElement.querySelector('.player-info-content');
+            const roleSpan = contentElement.querySelector('.player-role-span');
+            const locationSpan = contentElement.querySelector('.player-location-span');
+            const closeXButton = boxElement.querySelector('.close-x-button');
+
+            titleElement.style.display = 'none'; // Oyuncu Adı yazısını gizle
+            contentElement.style.display = 'block'; // İçeriği göster
+
+            roleSpan.innerHTML = player.role;
+            locationSpan.innerHTML = player.location;
+
+            boxElement.classList.add('revealed'); // Açıldığını işaretle
+            closeXButton.style.display = 'flex'; // Kapat butonunu göster (flex ile ortala)
+            boxElement.style.cursor = 'default'; // İmleci değiştir
+        }
+
+        // --- Yeni Fonksiyon: Kutucuk Bilgisini Gizleme ---
+        function hidePlayerInfoBox(boxElement, playerId) {
+            const player = players[playerId];
+
+            const titleElement = boxElement.querySelector('h3');
+            const contentElement = boxElement.querySelector('.player-info-content');
+            const roleSpan = contentElement.querySelector('.player-role-span');
+            const locationSpan = contentElement.querySelector('.player-location-span');
+            const closeXButton = boxElement.querySelector('.close-x-button');
+
+            titleElement.style.display = 'block'; // Oyuncu Adı yazısını tekrar göster
+            contentElement.style.display = 'none'; // İçeriği gizle
+
+            roleSpan.textContent = ""; // İçeriği temizle
+            locationSpan.textContent = ""; // İçeriği temizle
+            
+            boxElement.classList.remove('revealed');
+            boxElement.classList.add('disabled'); // Kapatıldıktan sonra devre dışı bırak
+            player.revealed = true; // Bu kutucuk artık bir daha açılmayacak
+            boxElement.onclick = null; // Tıklama olayını kaldır
+            closeXButton.style.display = 'none'; // Kapat butonunu gizle
+
+            // Tüm kutular kapatıldı mı kontrol et
+            const allRevealed = players.every(p => p.revealed);
+            if (allRevealed) {
+                document.getElementById('gameStatus').innerHTML = `
+                    <p>--- Tüm Bilgiler Dağıtıldı! ---</p>
+                    <p>Şimdi herkes birbirine sorular sorarak Köstebek'i bulmaya çalışacak.</p>
+                    <p>Köstebek ise diğerlerinin mekanını tahmin etmeye çalışacak.</p>
+                    <p>İyi eğlenceler! Unutmayın, önemli olan konuşma ve çıkarım!</p>
+                    <p>Konuşmaya başlamak için herhangi bir oyuncu bir soru sorabilir!</p>
+                `;
+                document.querySelector('.end-game-options').style.display = 'flex'; // Oyun sonu butonlarını göster
+            }
+        }
+
+        // --- Oyun Sonu Seçenekleri Fonksiyonları ---
+
+        function showGameSummary() {
+            document.getElementById('summaryMainLocation').textContent = mainLocation.mekan;
+            document.getElementById('summaryMoleLocation').textContent = moleLocation.mekan;
+            document.getElementById('summaryMolePlayer').textContent = players[moleIndex].name; // Köstebek oyuncunun ismi
+
+            const playerListElement = document.getElementById('summaryPlayerList');
+            playerListElement.innerHTML = '';
+
+            players.forEach(player => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${player.name}:</strong> ${player.role} (${player.location})`;
+                if (player.isMole) {
+                    listItem.style.fontWeight = 'bold';
+                    listItem.style.color = '#c0392b';
+                    listItem.innerHTML += ' 🕵️';
+                }
+                playerListElement.appendChild(listItem);
+            });
+
+            document.getElementById('gameSummaryBox').style.display = 'block';
+            document.querySelector('.end-game-options').style.display = 'none';
+        }
+
+        function hideGameSummary() {
+            document.getElementById('gameSummaryBox').style.display = 'none';
+            document.querySelector('.end-game-options').style.display = 'flex';
+        }
+
+        // --- Yeni Fonksiyon: Aynı Kişilerle Yeniden Başlat ---
+        function restartWithSamePlayers() {
+            // Sadece oyun değişkenlerini sıfırla, oyuncu isimlerini KORU
+            players = [];
+            mainLocation = null;
+            moleLocation = null;
+            moleIndex = -1;
+            // numPlayers ve currentPlayerNames değişmeyecek
+
+            // Doğrudan oyun başlatma ekranına geç
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('nameInputScreen').style.display = 'block'; // İsim giriş ekranını göster
+            document.getElementById('gameScreen').style.display = 'none';
+            
+            document.getElementById('playerCardsContainer').innerHTML = '';
+            document.querySelector('.end-game-options').style.display = 'none';
+            document.getElementById('gameSummaryBox').style.display = 'none';
+            document.getElementById('gameStatus').textContent = '';
+            
+            // Oyuncu isim inputlarını mevcut isimlerle doldur
+            const nameInputContainer = document.getElementById('playerNamesInputContainer');
+            nameInputContainer.innerHTML = ''; 
+            for (let i = 0; i < numPlayers; i++) { // numPlayers değeri korunuyor
+                const inputGroup = document.createElement('div');
+                inputGroup.classList.add('name-input-group');
+                inputGroup.innerHTML = `
+                    <label for="playerName${i}">Oyuncu ${i + 1}:</label>
+                    <input type="text" id="playerName${i}" placeholder="İsim girin" value="${currentPlayerNames[i]}">
+                `;
+                nameInputContainer.appendChild(inputGroup);
+            }
+            // showNameInputs() fonksiyonu da kullanılabilirdi, ancak currentPlayerNames'i manuel olarak yönetmek daha belirgin.
+        }
+
+
+        // --- Yeni Fonksiyon: Yeni Oyun Oluştur (Tamamen Sıfırla) ---
+        function startNewGame() {
+            // Tüm oyun değişkenlerini sıfırla
+            players = [];
+            mainLocation = null;
+            moleLocation = null;
+            moleIndex = -1;
+            numPlayers = 0; // Oyuncu sayısını da sıfırla
+            currentPlayerNames = []; // Kayıtlı isimleri de sıfırla
+
+            // Arayüzü en baştaki oyuncu sayısı belirleme ekranına getir
+            document.getElementById('mainGameContainer').style.display = 'block';
+            document.getElementById('setupScreen').style.display = 'flex'; // Kurulum ekranını göster
+            document.getElementById('nameInputScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            
+            document.getElementById('playerCardsContainer').innerHTML = '';
+            document.querySelector('.end-game-options').style.display = 'none';
+            document.getElementById('gameSummaryBox').style.display = 'none';
+            document.getElementById('gameStatus').textContent = '';
+            
+            document.getElementById('numPlayers').value = 4; // Oyuncu sayısını varsayılana döndür
+            document.getElementById('playerNamesInputContainer').innerHTML = ''; // İsim inputlarını temizle
+        }
+
+
+        // Sayfa yüklendiğinde splash ekranı göster, sonra ana oyunu başlat
+        window.onload = function() {
+            const mainGameContainer = document.getElementById('mainGameContainer');
+            mainGameContainer.style.display = 'none';
+            
+            const splashContent = document.querySelector('#splashScreen .splash-content');
+            splashContent.style.animation = 'fadeIn 1s forwards, fadeOutSplash 1s forwards';
+            splashContent.style.animationDelay = '0.5s, 3s';
+
+            setTimeout(() => {
+                document.getElementById('splashScreen').classList.add('hidden');
+                mainGameContainer.style.display = 'block';
+            }, 4000);
+        };
+    </script>
+</body>
+</html>
